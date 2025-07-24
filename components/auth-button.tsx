@@ -6,7 +6,7 @@ import { User } from "lucide-react"
 import Link from "next/link"
 
 export function AuthButton() {
-  const [user, setUser] = useState<any>(null)
+  const [user] = useState<any>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [UserButton, setUserButton] = useState<any>(null)
 
@@ -18,7 +18,7 @@ export function AuthButton() {
 
         if (hasValidKey) {
           // Dynamically import Clerk components
-          const { useUser, UserButton: ClerkUserButton } = await import("@clerk/nextjs")
+          const { UserButton: ClerkUserButton } = await import("@clerk/nextjs")
 
           // We can't use hooks here, so we'll handle this differently
           setUserButton(() => ClerkUserButton)

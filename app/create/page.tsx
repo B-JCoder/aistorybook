@@ -1,4 +1,3 @@
-"use client"
 import { Navigation } from "@/components/navigation"
 import { StoryCreationForm } from "@/components/story-creation-form"
 import { supabase } from "@/lib/supabase"
@@ -7,6 +6,8 @@ import { redirect } from "next/navigation"
 
 async function getUser() {
   const cookieStore = cookies()
+  const session = await (await cookieStore).get('supabase-auth')
+  if (!session) return null
   const supabaseUser = await supabase.auth.getUser()
   return supabaseUser.data.user
 }
