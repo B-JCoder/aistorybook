@@ -37,39 +37,37 @@ export async function GET(_req: NextRequest,
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<{ storyId: string }>>> {
   try {
-    const { userId } = await auth()
+    const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const { story, metadata }: GenerateStoryResponse = await request.json()
+    const { story, metadata }: GenerateStoryResponse = await request.json();
 
-    if (!story || !metadata) {
-      return NextResponse.json({ success: false, error: "Missing story data" }, { status: 400 })
+    if (!story || !metadata || !story.title || !Array.isArray(story.chapters)) {
+      return NextResponse.json({ success: false, error: "Invalid story data" }, { status: 400 });
     }
-    
-const docRef = await addDoc(collection(db, "stories"), {
-  title: story.title,
-  chapters: story.chapters, 
-  metadata: {
-    ...metadata,
-    userId,
-    isDemo: false,
-  },
-  collaborators: [],
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
-});
 
+    const docRef = await addDoc(collection(db, "stories"), {
+      title: story.title,
+      chapters: story.chapters,
+      metadata: {
+        ...metadata,
+        userId,
+        isDemo: false,
+      },
+      collaborators: [],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
 
     return NextResponse.json({
       success: true,
       data: { storyId: docRef.id },
-    })
+    });
   } catch (error) {
-    console.error("GET/POST Error:", error);
-    return NextResponse.json({ success: false, error: "Failed to save story" }, { status: 500 })
+    console.error("POST Error:", error);
+    return NextResponse.json({ success: false, error: "Failed to save story" }, { status: 500 });
   }
-  
 }
