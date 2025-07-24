@@ -1,29 +1,28 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "@/lib/firebase"
-import { collection, query, where, orderBy, getDocs, addDoc, serverTimestamp } from "firebase/firestore"
-import type { ApiResponse, Story, GenerateStoryResponse } from "@/types"
+import { collection, addDoc, query, where, getDocs, orderBy } from "firebase/firestore"
+import type { ApiResponse, Story } from "@/types"
 
-export async function GET(_req: NextRequest,
-  _context: { params: { id: string } }): Promise<NextResponse<ApiResponse<{ stories: Story[] }>>> {
+// ✅ For /api/stories route (no dynamic params needed)
+// If this route doesn't use dynamic parameters, remove the Context type entirely
+
+// ✅ GET /api/stories - Fetch all stories for the authenticated user
+export async function GET(_req: NextRequest): Promise<NextResponse<ApiResponse<{ stories: Story[] }>>> {
   try {
     const { userId } = await auth()
-
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
-    
 
-    const q = query(collection(db, "stories"), where("metadata.userId", "==", userId), orderBy("createdAt", "desc"))
+    const storiesRef = collection(db, "stories")
+    const q = query(storiesRef, where("metadata.userId", "==", userId), orderBy("createdAt", "desc"))
 
     const querySnapshot = await getDocs(q)
     const stories: Story[] = []
 
     querySnapshot.forEach((doc) => {
-      stories.push({
-       id: doc.id,
-  ...(doc.data() as Omit<Story, "id">),
-      } as Story)
+      stories.push({ id: doc.id, ...doc.data() } as Story)
     })
 
     return NextResponse.json({
@@ -31,43 +30,50 @@ export async function GET(_req: NextRequest,
       data: { stories },
     })
   } catch (error) {
+    console.error("Error fetching stories:", error)
     return NextResponse.json({ success: false, error: "Failed to fetch stories" }, { status: 500 })
   }
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<{ storyId: string }>>> {
+// ✅ POST /api/stories - Create a new story
+export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<{ story: Story }>>> {
   try {
-    const { userId } = await auth();
-
+    const { userId } = await auth()
     if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
-    const { story, metadata }: GenerateStoryResponse = await request.json();
+    const body = await req.json()
+    const { title, description, genre, targetAudience } = body
 
-    if (!story || !metadata || !story.title || !Array.isArray(story.chapters)) {
-      return NextResponse.json({ success: false, error: "Invalid story data" }, { status: 400 });
+    if (!title || !description) {
+      return NextResponse.json({ success: false, error: "Title and description are required" }, { status: 400 })
     }
 
-    const docRef = await addDoc(collection(db, "stories"), {
-      title: story.title,
-      chapters: story.chapters,
+    const newStory = {
+      title,
+      description,
+      genre: genre || "fantasy",
+      targetAudience: targetAudience || "children",
+      chapters: [],
       metadata: {
-        ...metadata,
         userId,
-        isDemo: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: "draft",
       },
       collaborators: [],
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    }
+
+    const docRef = await addDoc(collection(db, "stories"), newStory)
+    const createdStory = { id: docRef.id, ...newStory } as unknown as Story
 
     return NextResponse.json({
       success: true,
-      data: { storyId: docRef.id },
-    });
+      data: { story: createdStory },
+    })
   } catch (error) {
-    console.error("POST Error:", error);
-    return NextResponse.json({ success: false, error: "Failed to save story" }, { status: 500 });
+    console.error("Error creating story:", error)
+    return NextResponse.json({ success: false, error: "Failed to create story" }, { status: 500 })
   }
 }

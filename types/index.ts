@@ -87,6 +87,8 @@ export interface Metadata {
   [key: string]: any; // optional catch-all
 }
 export interface Chapter {
+  chapterNumber: any
+  content: any
   title: string;
   text: string;
   imagePrompt: string;
