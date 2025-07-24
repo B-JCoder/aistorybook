@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     let userId = null
     try {
       const { auth } = await import("@clerk/nextjs/server")
-      const authResult = auth()
+      const authResult = await auth()
       userId = authResult.userId
     } catch (error) {
       // Continue in demo mode if authentication is not available
@@ -73,7 +73,10 @@ Make sure the story is age-appropriate, engaging, teaches positive values, and h
       max_tokens: 3000,
     })
 
-    const storyContent = completion.choices[0].message.content
+
+    const storyContent = completion.choices?.[0]?.message?.content;
+
+
 
     if (!storyContent) {
       throw new Error("No story content generated")

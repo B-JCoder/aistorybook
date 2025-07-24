@@ -118,16 +118,17 @@ export default function SocialShare({
             >
               <Mail className="h-5 w-5" />
             </Button>
-            {navigator.share && (
-              <Button
-                onClick={() => handleShare("native")}
-                size="icon"
-                variant="outline"
-                className="rounded-full w-12 h-12 bg-purple-500 hover:bg-purple-600 text-white border-none"
-              >
-                <Share2 className="h-5 w-5" />
-              </Button>
-            )}
+            {"share" in navigator && typeof navigator.share === "function" && (
+  <Button
+    onClick={() => handleShare("native")}
+    size="icon"
+    variant="outline"
+    className="rounded-full w-12 h-12 bg-purple-500 hover:bg-purple-600 text-white border-none"
+  >
+    <Share2 className="h-5 w-5" />
+  </Button>
+)}
+
           </div>
 
           <div className="flex flex-col gap-2">

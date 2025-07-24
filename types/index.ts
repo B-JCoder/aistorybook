@@ -9,9 +9,12 @@ export interface User {
 }
 
 export interface Story {
+  collaborators: any
+  metadata: any
   id: string
   userId: string
   title: string
+  chapters: Chapter[];
   content: string
   prompt: string
   imageUrl?: string
@@ -24,6 +27,7 @@ export interface Story {
   likes: number
   views: number
 }
+
 
 export interface GeneratedImage {
   id: string
@@ -76,17 +80,32 @@ export interface GenerateImageRequest {
   size?: "1024x1024" | "1792x1024" | "1024x1792"
   sourceImageUrl?: string
 }
-export interface GenerateStoryResponse {
-  title: string
-  description: string
-  chapters: {
-    title: string
-    text: string
-    imagePrompt: string
-    imageUrl?: string
-  }[]
+export interface Metadata {
+  author?: string;
+  genre?: string;
+  length?: number;
+  [key: string]: any; // optional catch-all
+}
+export interface Chapter {
+  title: string;
+  text: string;
+  imagePrompt: string;
+  imageUrl?: string;
 }
 
+
+export interface GenerateStoryResponse {
+  title: string;
+  description: string;
+  story: Story;
+  metadata: Metadata; 
+  chapters: {
+    title: string;
+    text: string;
+    imagePrompt: string;
+    imageUrl?: string;
+  }[];
+}
 export interface StoryWithMetadata {
   story: GenerateStoryResponse
   metadata: {

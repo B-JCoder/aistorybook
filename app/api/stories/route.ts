@@ -6,7 +6,7 @@ import type { ApiResponse, Story, GenerateStoryResponse } from "@/types"
 
 export async function GET(): Promise<NextResponse<ApiResponse<{ stories: Story[] }>>> {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
@@ -35,7 +35,7 @@ export async function GET(): Promise<NextResponse<ApiResponse<{ stories: Story[]
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<{ storyId: string }>>> {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
@@ -46,19 +46,20 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     if (!story || !metadata) {
       return NextResponse.json({ success: false, error: "Missing story data" }, { status: 400 })
     }
+    
+const docRef = await addDoc(collection(db, "stories"), {
+  title: story.title,
+  chapters: story.chapters, 
+  metadata: {
+    ...metadata,
+    userId,
+    isDemo: false,
+  },
+  collaborators: [],
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
+});
 
-    const docRef = await addDoc(collection(db, "stories"), {
-      title: story.title,
-      chapters: story.chapters,
-      metadata: {
-        ...metadata,
-        userId,
-        isDemo: false,
-      },
-      collaborators: [],
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    })
 
     return NextResponse.json({
       success: true,

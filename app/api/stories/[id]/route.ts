@@ -11,11 +11,11 @@ interface RouteParams {
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: RouteParams,
 ): Promise<NextResponse<ApiResponse<{ story: Story }>>> {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
@@ -30,7 +30,7 @@ export async function GET(
 
     const storyData = storyDoc.data() as Story
     const isOwner = storyData.metadata.userId === userId
-    const isCollaborator = storyData.collaborators?.some((c) => c.id === userId)
+    const isCollaborator = storyData.collaborators?.some((c: { id: string }) => c.id === userId)
 
     if (!isOwner && !isCollaborator) {
       return NextResponse.json({ success: false, error: "Access denied" }, { status: 403 })
@@ -38,16 +38,18 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: { story: { id: storyDoc.id, ...storyData } },
+      data: { story: { ...storyData, id: storyDoc.id } }
+
+
     })
   } catch (error) {
     return NextResponse.json({ success: false, error: "Failed to fetch story" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse<ApiResponse>> {
+export async function DELETE(_request: NextRequest, { params }: RouteParams): Promise<NextResponse<ApiResponse>> {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
@@ -77,7 +79,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
 
 export async function PUT(request: NextRequest, { params }: RouteParams): Promise<NextResponse<ApiResponse>> {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })

@@ -84,20 +84,23 @@ export default function DemoStoryPage() {
   const totalChapters = demoStory.chapters.length
 
   const shareStory = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: title,
-          text: `Check out this demo AI-generated story: ${title}`,
-          url: window.location.href,
-        })
-      } catch (error) {
-        navigator.clipboard.writeText(window.location.href)
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href)
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: title,
+        text: `Check out this demo AI-generated story: ${title}`,
+        url: window.location.href,
+      });
+    } catch (error) {
+      await navigator.clipboard.writeText(window.location.href);
+      alert("Link copied to clipboard.");
     }
+  } else {
+    await navigator.clipboard.writeText(window.location.href);
+    alert("Link copied to clipboard.");
   }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
@@ -134,6 +137,15 @@ export default function DemoStoryPage() {
           </div>
         </div>
       </motion.div>
+
+    
+      <button
+  onClick={shareStory}
+  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+>
+  Share Story
+</button>
+
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         <motion.div initial="initial" animate="animate" variants={staggerContainer}>
@@ -197,38 +209,41 @@ export default function DemoStoryPage() {
             </motion.div>
           )}
 
-          {/* Current Chapter */}
-          <motion.div
-            key={currentChapter}
-            variants={fadeInUp}
-            className="flex flex-col md:flex-row gap-8 items-start mb-12"
-          >
-            <div className="flex-1">
-              <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
-                <CardContent className="p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Chapter {currentChapterData.chapterNumber}</h2>
-                  <div className="prose prose-lg max-w-none">
-                    {currentChapterData.content.split("\n").map((paragraph, index) => (
-                      <p key={index} className="text-lg leading-relaxed text-gray-700 mb-4">
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="flex-1">
-              <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.3 }}>
-                <Image
-                  src={currentChapterData.imageUrl || "/placeholder.svg"}
-                  alt={`Chapter ${currentChapterData.chapterNumber} illustration`}
-                  width={500}
-                  height={400}
-                  className="w-full rounded-2xl shadow-2xl"
-                />
-              </motion.div>
-            </div>
-          </motion.div>
+         {currentChapterData && (
+  <motion.div
+    key={currentChapter}
+    variants={fadeInUp}
+    className="flex flex-col md:flex-row gap-8 items-start mb-12"
+  >
+    <div className="flex-1">
+      <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+        <CardContent className="p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Chapter {currentChapterData.chapterNumber}
+          </h2>
+          <div className="prose prose-lg max-w-none">
+            {currentChapterData.content.split("\n").map((paragraph, index) => (
+              <p key={index} className="text-lg leading-relaxed text-gray-700 mb-4">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+    <div className="flex-1">
+      <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.3 }}>
+        <Image
+          src={currentChapterData.imageUrl || "/placeholder.svg"}
+          alt={`Chapter ${currentChapterData.chapterNumber} illustration`}
+          width={500}
+          height={400}
+          className="w-full rounded-2xl shadow-2xl"
+        />
+      </motion.div>
+    </div>
+  </motion.div>
+)}
 
           {/* Story End */}
           {currentChapter === totalChapters - 1 && (

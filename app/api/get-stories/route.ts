@@ -2,13 +2,13 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/firebase"
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore"
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Check if user is authenticated (optional for demo mode)
     let userId = null
     try {
       const { auth } = await import("@clerk/nextjs/server")
-      const authResult = auth()
+      const authResult = await auth()
       userId = authResult.userId
     } catch (error) {
       // Clerk not configured - return demo stories or empty array

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     let userId = null
     try {
       const { auth } = await import("@clerk/nextjs/server")
-      const authResult = auth()
+      const authResult = await auth()
       userId = authResult.userId
     } catch (error) {
       // Clerk not configured or user not authenticated - continue in demo mode

@@ -5,7 +5,7 @@ import { doc, getDoc } from "firebase/firestore"
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Simulate active edit sessions (in a real app, this would come from a real-time database)
-    const editSessions = [
+    const editSessions: never[] = [
       // Mock data - in real implementation, track active editing sessions
     ]
 
