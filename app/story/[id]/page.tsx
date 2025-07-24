@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -173,47 +173,49 @@ export default function StoryPage() {
           )}
 
           {/* Current Chapter */}
-          <motion.div
-            key={currentChapter}
-            variants={fadeInUp}
-            className="flex flex-col md:flex-row gap-8 items-start mb-12"
-          >
-            <div className="flex-1">
-              <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
-                <CardContent className="p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {currentChapterData.title || `Chapter ${currentChapterData.chapterNumber}`}
-                  </h2>
-                  <div className="prose prose-lg max-w-none">
-                    {currentChapterData.content.split("\n").map((paragraph, index) => (
-                      <p key={index} className="text-lg leading-relaxed text-gray-700 mb-4">
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+         {currentChapterData && (
+  <motion.div
+    key={currentChapter}
+    variants={fadeInUp}
+    className="flex flex-col md:flex-row gap-8 items-start mb-12"
+  >
+    <div className="flex-1">
+      <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+        <CardContent className="p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {currentChapterData.title || `Chapter ${currentChapterData.chapterNumber}`}
+          </h2>
+          <div className="prose prose-lg max-w-none">
+            {currentChapterData.content.split("\n").map((paragraph: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined, index: Key | null | undefined) => (
+              <p key={index} className="text-lg leading-relaxed text-gray-700 mb-4">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
 
-            {/* Chapter Image */}
-            {currentChapterData.imageUrl && (
-              <div className="flex-1">
-                <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.3 }}>
-                  <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
-                    <CardContent className="p-4">
-                      <Image
-                        src={currentChapterData.imageUrl || "/placeholder.svg"}
-                        alt={`Chapter ${currentChapterData.chapterNumber} illustration`}
-                        width={500}
-                        height={500}
-                        className="w-full rounded-xl shadow-lg"
-                      />
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </div>
-            )}
-          </motion.div>
+    {currentChapterData.imageUrl && (
+      <div className="flex-1">
+        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.3 }}>
+          <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+            <CardContent className="p-4">
+              <Image
+                src={currentChapterData.imageUrl || "/placeholder.svg"}
+                alt={`Chapter ${currentChapterData.chapterNumber} illustration`}
+                width={500}
+                height={500}
+                className="w-full rounded-xl shadow-lg"
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    )}
+  </motion.div>
+)}
+
 
           {/* Story End */}
           {currentChapter === totalChapters - 1 && (
