@@ -9,7 +9,7 @@ export async function DELETE(request: NextRequest) {
     try {
       const { auth } = await import("@clerk/nextjs/server")
       const authResult = auth()
-      userId = authResult.userId
+      userId = (await authResult).userId
     } catch (error) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }

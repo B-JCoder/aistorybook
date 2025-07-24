@@ -49,3 +49,61 @@ export interface Analytics {
   reading_time: number
   completion_rate: number
 }
+
+export interface StoryFormData {
+  title: string
+  mainCharacter: string
+  ageGroup: string
+  genre: string
+  tone: string
+  setting: string
+  additionalInstructions?: string
+}
+
+export interface GenerateStoryResponse {
+  title: string
+  description: string
+  chapters: {
+    title: string
+    text: string
+    imagePrompt: string
+    imageUrl?: string
+  }[]
+}
+
+export interface GenerateStoryRequest {
+  prompt?: string
+  imageUrl?: string
+  style?: string
+  length?: "short" | "medium" | "long"
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+}
+export interface GenerateStoryResponse {
+  title: string;
+  description: string;
+  chapters: {
+    title: string;
+    text: string;
+    imagePrompt: string;
+    imageUrl?: string;
+  }[];
+}
+// in your /types.ts
+export interface StoryWithMetadata {
+  story: GenerateStoryResponse;
+  metadata: {
+    mainCharacter: string;
+    ageGroup: string;
+    supportingCharacters: string[];
+    genre: string;
+    tone: string;
+    setting: string;
+    userId: string;
+    isDemo: boolean;
+  };
+}

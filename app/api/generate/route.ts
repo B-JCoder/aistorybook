@@ -1,54 +1,73 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import OpenAI from "openai"
-import type { ApiResponse, GenerateStoryResponse, StoryFormData } from "@/types"
+import type {
+  ApiResponse,
+  GenerateStoryResponse,
+  StoryFormData,
+  StoryWithMetadata,
+  
+} from "@/types"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY!,
 })
 
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<GenerateStoryResponse>>> {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<ApiResponse<StoryWithMetadata>>> {
   try {
-    const { userId } = auth()
-
+    const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
     const formData: StoryFormData = await request.json()
 
-    if (!formData.mainCharacter || !formData.ageGroup || !formData.genre || !formData.tone || !formData.setting) {
-      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
+    if (
+      !formData.mainCharacter ||
+      !formData.ageGroup ||
+      !formData.genre ||
+      !formData.tone ||
+      !formData.setting
+    ) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
+      )
     }
+
+    // Ensure supportingCharacters is always an array
+    const supportingCharacters: string[] = Array.isArray(formData.supportingCharacters)
+      ? formData.supportingCharacters
+      : typeof formData.supportingCharacters === "string"
+      ? formData.supportingCharacters.split(",").map((s) => s.trim())
+      : []
 
     const storyPrompt = `
 Create a ${formData.tone.toLowerCase()} ${formData.genre.toLowerCase()} story for children aged ${formData.ageGroup}.
-
 Story Details:
 - Title: ${formData.title || `${formData.mainCharacter}'s Adventure`}
 - Main Character: ${formData.mainCharacter}
-- Supporting Characters: ${formData.supportingCharacters?.join(", ") || "None"}
+- Supporting Characters: ${supportingCharacters.length > 0 ? supportingCharacters.join(", ") : "None"}
 - Setting: ${formData.setting}
 - Tone: ${formData.tone}
 - Genre: ${formData.genre}
 ${formData.customPrompt ? `- Additional Instructions: ${formData.customPrompt}` : ""}
 
-Please create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs long and engaging for the target age group. Format the response as a JSON object with this structure:
-
+Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs long and engaging. Format as JSON:
 {
-  "title": "An engaging story title",
+  "title": "...",
+  "description": "...",
   "chapters": [
     {
-      "chapterNumber": 1,
-      "title": "Chapter title",
-      "content": "Chapter content here...",
-      "imagePrompt": "Detailed description for DALL-E illustration showing the scene, characters, and setting in a child-friendly art style"
+      "title": "...",
+      "text": "...",
+      "imagePrompt": "..."
     }
   ]
 }
-
-Make sure the story is age-appropriate, engaging, teaches positive values, and has a satisfying conclusion. Each imagePrompt should be detailed and specific for generating beautiful children's book illustrations with DALL-E.
-    `
+`
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -56,7 +75,7 @@ Make sure the story is age-appropriate, engaging, teaches positive values, and h
         {
           role: "system",
           content:
-            "You are a creative children's story writer who creates engaging, age-appropriate stories with positive messages. Always respond with valid JSON. Create detailed image prompts for each chapter that will work well with DALL-E for children's book illustrations.",
+            "You are a creative children's story writer. Respond with valid JSON. Include image prompts for DALL·E illustrations.",
         },
         {
           role: "user",
@@ -67,35 +86,32 @@ Make sure the story is age-appropriate, engaging, teaches positive values, and h
       max_tokens: 3000,
     })
 
-    const storyContent = completion.choices[0].message.content
+    const storyContent = completion.choices?.[0]?.message?.content ?? ""
+    if (!storyContent) throw new Error("No story content received from OpenAI.")
 
-    if (!storyContent) {
-      throw new Error("No story content generated")
-    }
-
-    let parsedStory
+    let parsedStory: GenerateStoryResponse
     try {
       parsedStory = JSON.parse(storyContent)
     } catch {
       parsedStory = {
         title: formData.title || `${formData.mainCharacter}'s ${formData.genre} Adventure`,
+        description: "Fallback story generated due to JSON parse error",
         chapters: [
           {
-            chapterNumber: 1,
             title: "The Beginning",
-            content: storyContent,
-            imagePrompt: `${formData.mainCharacter} in a ${formData.setting}, ${formData.genre.toLowerCase()} style illustration for children's book, colorful and friendly`,
+            text: storyContent,
+            imagePrompt: `${formData.mainCharacter} in a ${formData.setting}, ${formData.genre.toLowerCase()} style illustration, colorful and friendly`,
           },
         ],
       }
     }
 
     const chaptersWithImages = await Promise.all(
-      parsedStory.chapters.map(async (chapter: any) => {
+      parsedStory.chapters.map(async (chapter) => {
         try {
           const imageResponse = await openai.images.generate({
             model: "dall-e-3",
-            prompt: `Children's book illustration: ${chapter.imagePrompt}. Style: Colorful, friendly, cartoon-like, safe and welcoming atmosphere, high quality, detailed but not scary, appropriate for young readers.`,
+            prompt: `Children's book illustration: ${chapter.imagePrompt}. Style: colorful, friendly, cartoon-like, safe atmosphere.`,
             size: "1024x1024",
             quality: "standard",
             n: 1,
@@ -103,12 +119,12 @@ Make sure the story is age-appropriate, engaging, teaches positive values, and h
 
           return {
             ...chapter,
-            imageUrl: imageResponse.data[0].url,
+            imageUrl: imageResponse.data?.[0]?.url ?? "",
           }
         } catch {
           return chapter
         }
-      }),
+      })
     )
 
     return NextResponse.json({
@@ -121,7 +137,7 @@ Make sure the story is age-appropriate, engaging, teaches positive values, and h
         metadata: {
           mainCharacter: formData.mainCharacter,
           ageGroup: formData.ageGroup,
-          supportingCharacters: formData.supportingCharacters || [],
+          supportingCharacters,
           genre: formData.genre,
           tone: formData.tone,
           setting: formData.setting,
@@ -131,6 +147,7 @@ Make sure the story is age-appropriate, engaging, teaches positive values, and h
       },
     })
   } catch (error) {
+    console.error("Story generation failed:", error)
     return NextResponse.json({ success: false, error: "Failed to generate story" }, { status: 500 })
   }
 }

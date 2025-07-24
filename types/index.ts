@@ -76,3 +76,62 @@ export interface GenerateImageRequest {
   size?: "1024x1024" | "1792x1024" | "1024x1792"
   sourceImageUrl?: string
 }
+export interface GenerateStoryResponse {
+  title: string
+  description: string
+  chapters: {
+    title: string
+    text: string
+    imagePrompt: string
+    imageUrl?: string
+  }[]
+}
+
+export interface StoryWithMetadata {
+  story: GenerateStoryResponse
+  metadata: {
+    mainCharacter: string
+    ageGroup: string
+    supportingCharacters: string[]
+    genre: string
+    tone: string
+    setting: string
+    userId: string
+    isDemo: boolean
+  }
+}
+export interface StoryFormData {
+  title: string
+  mainCharacter: string
+  ageGroup: string
+  genre: string
+  tone: string
+  setting: string
+  supportingCharacters?: string[] | string
+  customPrompt?: string
+  userId?: string
+}
+export interface GenerateImageResponse {
+  imageUrl: string
+  originalPrompt: string
+  enhancedPrompt: string
+  sourceImageUrl?: string
+  sourceType?: "upload" | "instagram" | "text"
+  style?: string
+  size?: "1024x1024" | "1792x1024" | "1024x1792"
+  createdAt?: Date
+  likes?: number
+  views?: number
+  isPublic?: boolean
+  completion_rate?: number
+  error?: string
+  success?: boolean
+  data?: GenerateImageResponse
+  prompt?: string
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+}
