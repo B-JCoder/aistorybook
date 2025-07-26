@@ -4,14 +4,14 @@ import { db } from "@/lib/firebase"
 import { doc, getDoc, deleteDoc, updateDoc } from "firebase/firestore"
 import type { ApiResponse, Story } from "@/types"
 
-// ✅ Updated type for Next.js 15 - params is now a Promise
+
 type Context = {
   params: Promise<{
     id: string
   }>
 }
 
-// ✅ GET /api/stories/[id]
+
 export async function GET(
   _req: NextRequest,
   { params }: Context,
@@ -22,7 +22,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
-    // ✅ Await params to get the actual parameters
+    
     const { id } = await params
 
     const storyRef = doc(db, "stories", id)
@@ -32,18 +32,22 @@ export async function GET(
       return NextResponse.json({ success: false, error: "Story not found" }, { status: 404 })
     }
 
-    const storyData = storySnap.data() as Story
-    const isOwner = storyData.metadata.userId === userId
-    const isCollaborator = storyData.collaborators?.some((c: { id: string }) => c.id === userId)
+   const storyData = storySnap.data() as Story
 
-    if (!isOwner && !isCollaborator) {
-      return NextResponse.json({ success: false, error: "Access denied" }, { status: 403 })
-    }
+const isOwner = storyData.metadata?.userId === userId
 
-    return NextResponse.json({
-      success: true,
-      data: { story: { ...storyData, id: storySnap.id } },
-    })
+const isCollaborator = storyData.collaborators?.some(
+  (c: { userId: string; role?: string }) => c.userId === userId
+)
+
+if (!isOwner && !isCollaborator) {
+  return NextResponse.json({ success: false, error: "Access denied" }, { status: 403 })
+}
+
+return NextResponse.json({
+  success: true,
+  data: { story: { ...storyData, id: storySnap.id } },
+})
   } catch (error) {
     return NextResponse.json({ success: false, error: "Failed to fetch story" }, { status: 500 })
   }
@@ -68,9 +72,9 @@ export async function DELETE(_req: NextRequest, { params }: Context): Promise<Ne
     }
 
     const storyData = storySnap.data() as Story
-    if (storyData.metadata.userId !== userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized to delete this story" }, { status: 403 })
-    }
+  if (!storyData.metadata || storyData.metadata.userId !== userId) {
+  return NextResponse.json({ success: false, error: "Unauthorized to delete this story" }, { status: 403 })
+}
 
     await deleteDoc(storyRef)
     return NextResponse.json({ success: true })
@@ -89,7 +93,7 @@ export async function PUT(req: NextRequest, { params }: Context): Promise<NextRe
 
     const { chapters } = await req.json()
 
-    // ✅ Await params to get the actual parameters
+   
     const { id } = await params
 
     const storyRef = doc(db, "stories", id)
@@ -99,10 +103,15 @@ export async function PUT(req: NextRequest, { params }: Context): Promise<NextRe
       return NextResponse.json({ success: false, error: "Story not found" }, { status: 404 })
     }
 
-    const storyData = storySnap.data() as Story
-    const isOwner = storyData.metadata.userId === userId
-    const collaborator = storyData.collaborators?.find((c: { id: string }) => c.id === userId)
-    const canEdit = isOwner || (collaborator && collaborator.role === "editor")
+    const storyData = storySnap.data() as Story;
+
+const isOwner = storyData.metadata?.userId === userId;
+
+const collaborator = storyData.collaborators?.find(
+  (c) => c.userId === userId && c.role === "editor"
+);
+
+const canEdit = isOwner || (collaborator?.role === "editor");
 
     if (!canEdit) {
       return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 })

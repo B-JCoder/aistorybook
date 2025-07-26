@@ -57,43 +57,49 @@ export function TestimonialSlider() {
 
   return (
     <div className="relative max-w-4xl mx-auto">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="glass-effect border-0">
-            <CardContent className="p-8">
-              <div className="flex items-center mb-4">
-                {Array.from({ length: testimonials[currentIndex].rating }).map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
+    <AnimatePresence mode="wait">
+  {testimonials[currentIndex] && (
+    <motion.div
+      key={currentIndex}
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="glass-effect border-0">
+        <CardContent className="p-8">
+          <div className="flex items-center mb-4">
+            {Array.from({ length: testimonials[currentIndex].rating }).map((_, i) => (
+              <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+            ))}
+          </div>
+          <blockquote className="text-lg text-gray-700 dark:text-gray-300 mb-6 italic">
+            "{testimonials[currentIndex].content}"
+          </blockquote>
+          <div className="flex items-center">
+            <Avatar className="w-12 h-12 mr-4">
+              <AvatarImage src={testimonials[currentIndex].avatar || "/placeholder.svg"} />
+              <AvatarFallback>
+                {testimonials[currentIndex].name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-semibold text-gray-900 dark:text-white">
+                {testimonials[currentIndex].name}
               </div>
-              <blockquote className="text-lg text-gray-700 dark:text-gray-300 mb-6 italic">
-                "{testimonials[currentIndex].content}"
-              </blockquote>
-              <div className="flex items-center">
-                <Avatar className="w-12 h-12 mr-4">
-                  <AvatarImage src={testimonials[currentIndex].avatar || "/placeholder.svg"} />
-                  <AvatarFallback>
-                    {testimonials[currentIndex].name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-semibold text-gray-900 dark:text-white">{testimonials[currentIndex].name}</div>
-                  <div className="text-gray-600 dark:text-gray-400">{testimonials[currentIndex].role}</div>
-                </div>
+              <div className="text-gray-600 dark:text-gray-400">
+                {testimonials[currentIndex].role}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </AnimatePresence>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )}
+</AnimatePresence>
 
       {/* Dots Indicator */}
       <div className="flex justify-center mt-6 space-x-2">

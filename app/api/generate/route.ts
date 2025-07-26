@@ -21,10 +21,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     }
 
     const supportingCharacters: string[] = Array.isArray(formData.supportingCharacters)
-      ? formData.supportingCharacters
-      : typeof formData.supportingCharacters === "string"
-        ? formData.supportingCharacters.split(",").map((s) => s.trim())
-        : []
+  ? formData.supportingCharacters
+  : typeof formData.supportingCharacters === "string"
+    ? (formData.supportingCharacters as string).split(",").map((s: string) => s.trim())
+    : [];
 
     const storyPrompt = `Create a ${formData.tone.toLowerCase()} ${formData.genre.toLowerCase()} story for children aged ${formData.ageGroup}.
 
@@ -88,62 +88,62 @@ Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs lo
     } catch (e) {
       console.warn("Using fallback story due to parsing error:", e)
 
-     const fallbackStory: Story = {
-  id: "fallback-id",
-  userId,
-  title: formData.title || `${formData.mainCharacter}'s ${formData.genre} Adventure`,
-  prompt: storyPrompt,
-  chapters: Array.from({ length: 5 }).map((_, i) => ({
-    chapterNumber: i + 1,
-    content: [],
-    title: `Chapter ${i + 1}`,
-    text: i === 0 ? storyContent : `Placeholder text for chapter ${i + 1}`,
-    imagePrompt: `${formData.mainCharacter} in ${formData.setting}, ${formData.genre.toLowerCase()} style`,
-    imageUrl: "",
-  })),
-  content: "",
-  collaborators: [],
-  metadata: {
+      const fallbackStory: Story = {
+    id: "fallback-id",
     userId,
+    title: formData.title || `${formData.mainCharacter}'s ${formData.genre} Adventure`,
+    prompt: storyPrompt,
+    chapters: Array.from({ length: 5 }).map((_, i) => ({
+  chapterNumber: i + 1,
+  content: "", 
+  title: `Chapter ${i + 1}`,
+  text: i === 0 ? storyContent : `Placeholder text for chapter ${i + 1}`,
+  imagePrompt: `${formData.mainCharacter} in ${formData.setting}, ${formData.genre.toLowerCase()} style`,
+  imageUrl: "",
+})),
+    content: "",
+    collaborators: [],
+    metadata: {
+      userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      status: "draft",
+    },
+    imageUrl: "",
+    sourceImageUrl: "",
+    sourceType: "generated",
+    tags: [],
+    isPublic: false,
     createdAt: new Date(),
     updatedAt: new Date(),
-    status: "draft",
-  },
-  imageUrl: "",
-  sourceImageUrl: "",
-  sourceType: "generated",
-  tags: [],
-  isPublic: false,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  likes: 0,
-  views: 0,
-}
+    likes: 0,
+    views: 0,
+  }
 
-parsedStory = {
-  title: fallbackStory.title,
-  description: "A wonderful adventure story created just for you!",
-  story: fallbackStory,
-  metadata: {
-    author: userId,
-    genre: formData.genre,
-    length: fallbackStory.chapters.length,
-  },
-  chapters: fallbackStory.chapters,
-}
+  parsedStory = {
+    title: fallbackStory.title,
+    description: "A wonderful adventure story created just for you!",
+    story: fallbackStory,
+    metadata: {
+      author: userId,
+      genre: formData.genre,
+      length: fallbackStory.chapters.length,
+    },
+    chapters: fallbackStory.chapters,
+  }
 
-      parsedStory = {
-  title: fallbackStory.title,
-  description: "A wonderful adventure story created just for you!",
-  story: fallbackStory,
-  metadata: {
-    author: userId,
-    genre: formData.genre,
-    length: fallbackStory.chapters.length,
-  },
-  chapters: fallbackStory.chapters,
-}
-    }
+        parsedStory = {
+    title: fallbackStory.title,
+    description: "A wonderful adventure story created just for you!",
+    story: fallbackStory,
+    metadata: {
+      author: userId,
+      genre: formData.genre,
+      length: fallbackStory.chapters.length,
+    },
+    chapters: fallbackStory.chapters,
+  }
+      }
 
     const chaptersWithImages = await Promise.all(
       parsedStory.story.chapters.map(async (chapter) => {

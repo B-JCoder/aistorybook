@@ -68,4 +68,7 @@ export class AudioService {
   static isPaused(): boolean {
     return this.synthesis ? this.synthesis.paused : false
   }
+  static getCurrentUtterance(): SpeechSynthesisUtterance | null {
+  return this.currentUtterance
+}
 }

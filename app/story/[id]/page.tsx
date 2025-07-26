@@ -126,22 +126,22 @@ export default function StoryPage() {
             <div className="flex flex-wrap justify-center gap-2 mb-6">
               <Badge variant="secondary" className="bg-purple-100 text-purple-700">
                 <BookOpen className="w-3 h-3 mr-1" />
-                {story.metadata.genre}
+                {story.metadata?.genre}
               </Badge>
               <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                {story.metadata.tone}
+                {story.metadata?.tone}
               </Badge>
               <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
-                Ages {story.metadata.ageGroup}
+                Ages {story.metadata?.ageGroup}
               </Badge>
               <Badge variant="secondary" className="bg-green-100 text-green-700">
-                {story.metadata.setting}
+                {story.metadata?.setting}
               </Badge>
             </div>
             <p className="text-lg text-gray-600">
-              A personalized story featuring {story.metadata.mainCharacter}
-              {story.metadata.supportingCharacters?.length > 0 &&
-                ` and ${story.metadata.supportingCharacters.join(", ")}`}
+              A personalized story featuring {story.metadata?.mainCharacter}
+              {story.metadata?.supportingCharacters?.length > 0 &&
+                ` and ${story.metadata?.supportingCharacters.join(", ")}`}
             </p>
           </motion.div>
 
@@ -224,7 +224,7 @@ export default function StoryPage() {
                 <CardContent className="p-12">
                   <h2 className="text-3xl font-bold mb-4">The End</h2>
                   <p className="text-xl opacity-90 mb-8">
-                    And so, {story.metadata.mainCharacter}&apos;s adventure comes to a close. What magical story will
+                    And so, {story.metadata?.mainCharacter}&apos;s adventure comes to a close. What magical story will
                     you create next?
                   </p>
                   <Link href="/create-story">

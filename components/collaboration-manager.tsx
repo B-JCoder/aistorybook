@@ -16,7 +16,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Users, Trash2, Mail, Crown, Edit, Eye } from "lucide-react"
 import { toast } from "sonner"
-import { useUser } from "@clerk/nextjs"
+// import { useUser } from "@clerk/nextjs"
 
 interface Collaborator {
   id: string
@@ -40,7 +40,7 @@ export default function CollaborationManager({
   onCollaboratorsUpdate,
   isOwner,
 }: CollaborationManagerProps) {
-  const { user } = useUser()
+  // const { user } = useUser()
   const [isOpen, setIsOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState("")
   const [inviteRole, setInviteRole] = useState<"editor" | "viewer">("editor")

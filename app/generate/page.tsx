@@ -37,11 +37,12 @@ export default function GeneratePage() {
   const [imageStyle, setImageStyle] = useState("realistic")
   const [storyLength, setStoryLength] = useState("medium")
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      setUploadedImage(acceptedFiles[0])
-    }
-  }, [])
+ const onDrop = useCallback((acceptedFiles: File[]) => {
+  if (acceptedFiles.length > 0) {
+    setUploadedImage(acceptedFiles[0] ?? null)
+  }
+}, [])
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

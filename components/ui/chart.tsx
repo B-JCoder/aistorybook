@@ -138,13 +138,20 @@ const ChartTooltipContent = React.forwardRef<
         return null
       }
 
-      const [item] = payload
-      const key = `${labelKey || item.dataKey || item.name || "value"}`
-      const itemConfig = getPayloadConfigFromPayload(config, item, key)
-      const value =
-        !labelKey && typeof label === "string"
-          ? config[label as keyof typeof config]?.label || label
-          : itemConfig?.label
+      const [item] = payload;
+
+if (!item) {
+  throw new Error("Item is undefined");
+}
+
+const key = `${labelKey || item.dataKey || item.name || "value"}`;
+const itemConfig = getPayloadConfigFromPayload(config, item, key);
+
+const value =
+  !labelKey && typeof label === "string"
+    ? config[label as keyof typeof config]?.label || label
+    : itemConfig?.label;
+
 
       if (labelFormatter) {
         return (

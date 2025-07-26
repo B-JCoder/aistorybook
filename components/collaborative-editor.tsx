@@ -1,3 +1,5 @@
+// File: components/CollaborativeEditor.tsx
+
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -51,28 +53,19 @@ export default function CollaborativeEditor({
   const canEdit = userRole === "owner" || userRole === "editor"
 
   useEffect(() => {
-    // Initialize WebSocket connection for real-time collaboration
     if (typeof window !== "undefined") {
       initializeWebSocket()
     }
-
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close()
-      }
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-      }
+      if (wsRef.current) wsRef.current.close()
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     }
   }, [storyId, chapterNumber])
 
   const initializeWebSocket = () => {
-    // In a real implementation, you would connect to a WebSocket server
-    // For now, we'll simulate real-time updates with periodic checks
     const interval = setInterval(() => {
       checkForUpdates()
     }, 5000)
-
     return () => clearInterval(interval)
   }
 
@@ -81,13 +74,10 @@ export default function CollaborativeEditor({
       const response = await fetch(`/api/collaboration/check-updates?storyId=${storyId}&chapter=${chapterNumber}`)
       if (response.ok) {
         const { content: latestContent, editSessions: sessions } = await response.json()
-
-        // Only update if content is different and user is not currently editing
         if (latestContent !== content && !isEditing) {
           setContent(latestContent)
           onContentChange(latestContent)
         }
-
         setEditSessions(sessions)
       }
     } catch (error) {
@@ -97,18 +87,11 @@ export default function CollaborativeEditor({
 
   const handleContentChange = (newContent: string) => {
     if (!canEdit) return
-
     setContent(newContent)
     setHasUnsavedChanges(true)
     setIsEditing(true)
     onContentChange(newContent)
-
-    // Clear existing timeout
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-
-    // Auto-save after 2 seconds of inactivity
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(() => {
       saveContent(newContent)
       setIsEditing(false)
@@ -118,26 +101,19 @@ export default function CollaborativeEditor({
   const saveContent = async (contentToSave?: string) => {
     const finalContent = contentToSave || content
     setIsSaving(true)
-
     try {
       const response = await fetch("/api/collaboration/save-content", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           storyId,
           chapterNumber,
           content: finalContent,
-          userId: user?.id,
+          userId: user?.id ?? "",
           userName: user?.fullName || user?.firstName || "Anonymous",
         }),
       })
-
-      if (!response.ok) {
-        throw new Error("Failed to save content")
-      }
-
+      if (!response.ok) throw new Error("Failed to save content")
       setLastSaved(new Date())
       setHasUnsavedChanges(false)
       toast.success("Changes saved automatically")
@@ -150,9 +126,7 @@ export default function CollaborativeEditor({
   }
 
   const manualSave = () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveContent()
     setIsEditing(false)
   }
@@ -162,19 +136,28 @@ export default function CollaborativeEditor({
     const now = new Date()
     const diff = now.getTime() - lastSaved.getTime()
     const minutes = Math.floor(diff / 60000)
-
     if (minutes < 1) return "Just now"
     if (minutes === 1) return "1 minute ago"
     return `${minutes} minutes ago`
   }
 
-  const getActiveEditorsText = () => {
-    const activeEditors = editSessions.filter((session) => session.isActive && session.userId !== user?.id)
+const getActiveEditorsText = () => {
+  const currentUserId = user?.id
+  if (!editSessions || !currentUserId) return null
 
-    if (activeEditors.length === 0) return null
-    if (activeEditors.length === 1) return `${activeEditors[0].userName} is editing`
-    return `${activeEditors.length} people are editing`
-  }
+  const activeEditors = editSessions.filter(
+    (session) => session?.isActive && session?.userId !== currentUserId
+  )
+
+  if (activeEditors.length === 0) return null
+
+  // ✅ Fix: use optional chaining or fallback in case userName is undefined
+  const name = activeEditors[0]?.userName || "Someone"
+  if (activeEditors.length === 1) return `${name} is editing`
+
+  return `${activeEditors.length} people are editing`
+}
+
 
   return (
     <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
@@ -182,7 +165,6 @@ export default function CollaborativeEditor({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Chapter {chapterNumber}</CardTitle>
           <div className="flex items-center space-x-2">
-            {/* Active Collaborators */}
             {activeCollaborators.length > 0 && (
               <div className="flex items-center space-x-1">
                 <Users className="w-4 h-4 text-gray-500" />
@@ -204,8 +186,6 @@ export default function CollaborativeEditor({
                 </div>
               </div>
             )}
-
-            {/* Save Status */}
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               {isSaving ? (
                 <div className="flex items-center space-x-1">
@@ -227,7 +207,6 @@ export default function CollaborativeEditor({
           </div>
         </div>
 
-        {/* Active Editors Notification */}
         {getActiveEditorsText() && (
           <div className="flex items-center space-x-2">
             <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">

@@ -52,7 +52,11 @@ export function isValidUrl(string: string): boolean {
 }
 
 export function extractInstagramMediaId(url: string): string | null {
-  const regex = /(?:instagram\.com\/p\/|instagram\.com\/reel\/)([A-Za-z0-9_-]+)/
-  const match = url.match(regex)
-  return match ? match[1] : null
+  if (!url) return null; // Ensure url is defined
+
+  const regex = /(?:instagram\.com\/p\/|instagram\.com\/reel\/)([A-Za-z0-9_-]+)/;
+  const match = url.match(regex);
+
+  // match?.[1] returns string | undefined, so we coalesce to null if undefined
+  return match?.[1] ?? null;
 }

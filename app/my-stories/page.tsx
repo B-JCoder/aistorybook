@@ -173,19 +173,19 @@ export default function MyStoriesPage() {
                           className="w-full h-48 object-cover"
                         />
                         <div className="absolute top-4 right-4">
-                          <Badge className="bg-white/90 text-gray-700">{story.metadata.genre}</Badge>
+                         <Badge className="bg-white/90 text-gray-700">{story.metadata?.genre}</Badge>
                         </div>
                       </div>
 
                       <CardHeader className="pb-2">
                         <CardTitle className="text-xl font-bold text-gray-900 line-clamp-2">{story.title}</CardTitle>
-                        <p className="text-gray-600">Featuring {story.metadata.mainCharacter}</p>
+                        <p className="text-gray-600">Featuring {story.metadata?.mainCharacter}</p>
                       </CardHeader>
 
                       <CardContent className="pt-0">
                         <div className="flex items-center justify-between mb-4">
                           <Badge variant="outline" className="text-purple-600 border-purple-200">
-                            {story.metadata.tone}
+                            {story.metadata?.tone}
                           </Badge>
                           <div className="flex items-center gap-1 text-sm text-gray-500">
                             <Calendar className="w-4 h-4" />
