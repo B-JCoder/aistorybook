@@ -80,13 +80,13 @@ export default function CreateStoryPage() {
   }
 
   const addCharacter = () => {
-    if (newCharacter.trim() && !formData.supportingCharacters.includes(newCharacter.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        supportingCharacters: [...prev.supportingCharacters, newCharacter.trim()],
-      }))
-      setNewCharacter("")
-    }
+   if (newCharacter.trim() && !(formData.supportingCharacters ?? []).includes(newCharacter.trim())) {
+  setFormData((prev) => ({
+    ...prev,
+    supportingCharacters: [...(prev.supportingCharacters ?? []), newCharacter.trim()],
+  }))
+}
+
   }
 
   const removeCharacter = (character: string) => {
