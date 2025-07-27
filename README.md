@@ -163,15 +163,9 @@ ai-storybook/
 4. Run tests and linting
 5. Submit a pull request
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
 
-- **Documentation**: Check this README
-- **Issues**: Create a GitHub issue
-- **Email**: support@ai-storybook.com
 
 ## 🎯 Production Checklist
 
@@ -185,6 +179,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Clean code structure
 - ✅ Proper error handling
 
----
 
-**Happy Storytelling! 📚✨**
