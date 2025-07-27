@@ -80,13 +80,24 @@ const config: Config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        spin3d: {
+      '0%': { transform: 'rotateY(0deg)' },
+      '100%': { transform: 'rotateY(360deg)' },
+    },
       },
+       dropShadow: {
+    glow: '0 0 12px #BD02F7',
+  },
+  boxShadow: {
+    neon: '0 0 10px #BD02F7, 0 0 20px #12B0FC',
+  },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         float: "float 6s ease-in-out infinite",
         glow: "glow 2s ease-in-out infinite alternate",
         shimmer: "shimmer 2s linear infinite",
+        rotate3d: 'spin3d 20s linear infinite',
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
