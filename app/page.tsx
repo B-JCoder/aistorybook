@@ -10,7 +10,7 @@ import { FloatingElements } from "@/components/ui/floating-elements"
 import { AnimatedCounter } from "@/components/ui/animated-counter"
 import { FeatureCard } from "@/components/ui/feature-card"
 import { TestimonialSlider } from "@/components/ui/testimonial-slider"
-// import HeroSection from "@/components/Hero"
+import HeroSection from "@/components/Hero"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 60 },
@@ -44,7 +44,7 @@ export default function HomePage() {
               <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold gradient-text">AI Creator</span>
+              {/* <span className="text-xl font-bold gradient-text">AI Creator</span> */}
             </motion.div>
 
             <div className="flex items-center space-x-4">
@@ -73,9 +73,9 @@ export default function HomePage() {
         </div>
       </nav>
 
-{/* <main>
+<main>
       <HeroSection />
-    </main> */}
+    </main>
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
