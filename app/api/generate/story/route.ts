@@ -9,25 +9,30 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<StoryWithMetadata>>> {
   try {
+    // 1. Authentication
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
+    // 2. Parse JSON body
     const formData: StoryFormData = await request.json()
 
+    // 3. Validation
     if (!formData.mainCharacter || !formData.ageGroup || !formData.genre || !formData.tone || !formData.setting) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
     }
 
+    // 4. Supporting characters processing
     const supportingCharacters: string[] = Array.isArray(formData.supportingCharacters)
-  ? formData.supportingCharacters
-  : typeof formData.supportingCharacters === "string"
-    ? (formData.supportingCharacters as string).split(",").map((s: string) => s.trim())
-    : [];
+      ? formData.supportingCharacters
+      : typeof formData.supportingCharacters === "string"
+      ? (formData.supportingCharacters as string).split(",").map((s: string) => s.trim())
+      : []
 
+    // 5. Prompt for OpenAI
     const storyPrompt = `Create a ${formData.tone.toLowerCase()} ${formData.genre.toLowerCase()} story for children aged ${formData.ageGroup}.
-
+    
 Story Details:
 - Title: ${formData.title || `${formData.mainCharacter}'s Adventure`}
 - Main Character: ${formData.mainCharacter}
@@ -37,7 +42,8 @@ Story Details:
 - Genre: ${formData.genre}
 ${formData.customPrompt ? `- Additional Instructions: ${formData.customPrompt}` : ""}
 
-Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs long and engaging. Format as JSON:
+Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs long and engaging. 
+Format as JSON:
 {
   "story": {
     "title": "...",
@@ -55,18 +61,12 @@ Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs lo
   }
 }`
 
+    // 6. Call OpenAI for story generation
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
-        {
-          role: "system",
-          content:
-            "You are a creative children's story writer. Respond with valid JSON. Include image prompts for DALL·E illustrations.",
-        },
-        {
-          role: "user",
-          content: storyPrompt,
-        },
+        { role: "system", content: "You are a creative children's story writer. Respond with valid JSON. Include image prompts for DALL·E illustrations." },
+        { role: "user", content: storyPrompt },
       ],
       temperature: 0.8,
       max_tokens: 3000,
@@ -77,8 +77,8 @@ Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs lo
       throw new Error("No story content received from OpenAI.")
     }
 
+    // 7. Parse or fallback if error
     let parsedStory: GenerateStoryResponse
-
     try {
       parsedStory = JSON.parse(storyContent)
 
@@ -89,62 +89,52 @@ Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs lo
       console.warn("Using fallback story due to parsing error:", e)
 
       const fallbackStory: Story = {
-    id: "fallback-id",
-    userId,
-    title: formData.title || `${formData.mainCharacter}'s ${formData.genre} Adventure`,
-    prompt: storyPrompt,
-    chapters: Array.from({ length: 5 }).map((_, i) => ({
-  chapterNumber: i + 1,
-  content: "", 
-  title: `Chapter ${i + 1}`,
-  text: i === 0 ? storyContent : `Placeholder text for chapter ${i + 1}`,
-  imagePrompt: `${formData.mainCharacter} in ${formData.setting}, ${formData.genre.toLowerCase()} style`,
-  imageUrl: "",
-})),
-    content: "",
-    collaborators: [],
-    metadata: {
-      userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      status: "draft",
-    },
-    imageUrl: "",
-    sourceImageUrl: "",
-    sourceType: "generated",
-    tags: [],
-    isPublic: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    likes: 0,
-    views: 0,
-  }
-
-  parsedStory = {
-    title: fallbackStory.title,
-    description: "A wonderful adventure story created just for you!",
-    story: fallbackStory,
-    metadata: {
-      author: userId,
-      genre: formData.genre,
-      length: fallbackStory.chapters.length,
-    },
-    chapters: fallbackStory.chapters,
-  }
-
-        parsedStory = {
-    title: fallbackStory.title,
-    description: "A wonderful adventure story created just for you!",
-    story: fallbackStory,
-    metadata: {
-      author: userId,
-      genre: formData.genre,
-      length: fallbackStory.chapters.length,
-    },
-    chapters: fallbackStory.chapters,
-  }
+        id: "fallback-id",
+        userId,
+        title: formData.title || `${formData.mainCharacter}'s ${formData.genre} Adventure`,
+        prompt: storyPrompt,
+        chapters: Array.from({ length: 5 }).map((_, i) => ({
+          chapterNumber: i + 1,
+          content: "",
+          title: `Chapter ${i + 1}`,
+          text: i === 0 ? storyContent : `Placeholder text for chapter ${i + 1}`,
+          imagePrompt: `${formData.mainCharacter} in ${formData.setting}, ${formData.genre.toLowerCase()} style`,
+          imageUrl: "",
+        })),
+        content: "",
+        collaborators: [],
+        metadata: {
+          userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          status: "draft",
+        },
+        imageUrl: "",
+        sourceImageUrl: "",
+        sourceType: "generated",
+        tags: [],
+        isPublic: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        likes: 0,
+        views: 0,
       }
 
+      parsedStory = {
+        title: fallbackStory.title,
+        description: "A wonderful adventure story created just for you!",
+        story: fallbackStory,
+        metadata: {
+          author: userId,
+          genre: formData.genre,
+          length: fallbackStory.chapters.length,
+        },
+        chapters: fallbackStory.chapters,
+      }
+    }
+    
+
+    // 8. Generate images for each chapter
     const chaptersWithImages = await Promise.all(
       parsedStory.story.chapters.map(async (chapter) => {
         try {
@@ -156,28 +146,19 @@ Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs lo
             n: 1,
           })
 
-          return {
-            ...chapter,
-            imageUrl: imageResponse.data?.[0]?.url ?? "",
-          }
+          return { ...chapter, imageUrl: imageResponse.data?.[0]?.url ?? "" }
         } catch {
-          return {
-            ...chapter,
-            imageUrl: "",
-          }
+          return { ...chapter, imageUrl: "" }
         }
       })
     )
 
+    // 9. Final story with metadata
     const storyWithMetadata: StoryWithMetadata = {
-    story: {
-      ...parsedStory.story,
-      chapters: chaptersWithImages,
-      description: "",
-      story: parsedStory.story,
-      metadata: parsedStory.metadata,
-    },
-
+      story: {
+        ...parsedStory,
+        chapters: chaptersWithImages,
+      },
       metadata: {
         mainCharacter: formData.mainCharacter,
         ageGroup: formData.ageGroup,
@@ -190,10 +171,7 @@ Create a story with exactly 5 chapters. Each chapter should be 2-3 paragraphs lo
       },
     }
 
-    return NextResponse.json({
-      success: true,
-      data: storyWithMetadata,
-    })
+    return NextResponse.json({ success: true, data: storyWithMetadata })
   } catch (error) {
     console.error("Story generation failed:", error)
     return NextResponse.json({ success: false, error: "Failed to generate story" }, { status: 500 })
